@@ -23,37 +23,41 @@ pipeline {
             }
         }
         */
-        stage('Test') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
+        stage('Run tests') {
+            parallel {
+                stage('Test') {
+                    agent {
+                        docker {
+                            image 'node:18-alpine'
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                        sh '''
+                            echo 'This is test stage'
+                            #test -f build/index.html
+                            npm test
+                        '''
+                    }
                 }
-            }
-            steps {
-                sh '''
-                    echo 'This is test stage'
-                    #test -f build/index.html
-                    npm test
-                '''
-            }
-        }
 
-        stage('E2E') {
-            agent {
-                docker {
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                    reuseNode true
-                    //args '-u root:root' to run container as root
+                stage('E2E') {
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                            reuseNode true
+                            //args '-u root:root' to run container as root
+                        }
+                    }
+                    steps {
+                        sh '''
+                            npm install serve
+                            node_modules/.bin/serve -s build &
+                            sleep 10
+                            npx playwright test
+                        '''
+                    }
                 }
-            }
-            steps {
-                sh '''
-                    npm install serve
-                    node_modules/.bin/serve -s build &
-                    sleep 10
-                    npx playwright test
-                '''
             }
         }
     }
