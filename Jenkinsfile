@@ -65,7 +65,7 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy stage') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -75,6 +75,34 @@ pipeline {
             }
             steps {
                 sh '''
+                    npm install netlify-cli
+                    node_modules/.bin/netlify --version
+                    echo "Deploying to Production site ID: $NETLIFY_SITE_ID"
+                    node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build
+                '''
+            }
+        }
+
+        stage('Approval') {
+            steps {
+                timeout(time: 30, unit: 'MINUTES') {
+                    input 'Promote stage to Prod?'
+                }
+            }
+        }
+
+        stage('Deploy Prod') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                    //args '-u root:root' to run container as root
+                }
+            }
+            steps {
+                sh '''
+                    echo 'Promoting to Prod..'
                     npm install netlify-cli
                     node_modules/.bin/netlify --version
                     echo "Deploying to Production site ID: $NETLIFY_SITE_ID"
