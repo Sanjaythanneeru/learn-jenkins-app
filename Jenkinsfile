@@ -80,7 +80,7 @@ pipeline {
                     echo "Deploying to Production site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
                     node_modules/.bin/netlify deploy --dir=build > deploy-stage-output.json
-                    echo "Stage URL: ${node_modules/.bin/node-jq -r '.deploy_url' deploy-stage-output.json}"
+                    echo 'Stage URL: ' && node_modules/.bin/node-jq -r '.deploy_url' deploy-stage-output.json
                 '''
             }
         }
@@ -109,7 +109,7 @@ pipeline {
                     echo "Deploying to Production site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
                     node_modules/.bin/netlify deploy --dir=build --prod > deploy-prod-output.json
-                    echo "Prod URL: ${node_modules/.bin/node-jq -r '.deploy_url' deploy-prod-output.json}"
+                    echo 'Prod URL: ' && node_modules/.bin/node-jq -r '.deploy_url' deploy-prod-output.json
                 '''
             }
         }
