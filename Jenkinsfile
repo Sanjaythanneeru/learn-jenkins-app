@@ -44,7 +44,7 @@ pipeline {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.46.1-jammy'
                     reuseNode true
-                    #args '-u root:root' to run container as root
+                    //args '-u root:root' to run container as root
                 }
             }
             steps {
