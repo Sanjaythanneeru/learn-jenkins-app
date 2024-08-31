@@ -17,6 +17,7 @@ pipeline {
                 npm ci  #npm ci is used instead npm install as git won't include node_modules folder
                 npm run build
                 ls -la
+                ls
                 '''
             }
         }
