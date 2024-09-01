@@ -7,11 +7,23 @@ pipeline {
     }
 
     stages {
-        /*
+        stage('Docker Build') {
+            agent {
+                docker {
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    docker build -t my-app-image .
+                '''
+            }
+        }
+
         stage('Build') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'my-app-image'
                     reuseNode true
                 }
             }
@@ -27,13 +39,12 @@ pipeline {
                 '''
             }
         }
-        */
         stage('Run tests') {
             parallel {
                 stage('Test') {
                     agent {
                         docker {
-                            image 'node:18-alpine'
+                            image 'my-app-image'
                             reuseNode true
                         }
                     }
@@ -49,15 +60,14 @@ pipeline {
                 stage('E2E') {
                     agent {
                         docker {
-                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                            image 'my-app-image'
                             reuseNode true
                             //args '-u root:root' to run container as root
                         }
                     }
                     steps {
                         sh '''
-                            npm install serve
-                            node_modules/.bin/serve -s build &
+                            serve -s build &
                             sleep 10
                         '''
                         // sh npx playwright test
@@ -69,20 +79,19 @@ pipeline {
         stage('Deploy stage') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'my-app-image'
                     reuseNode true
                     //args '-u root:root' to run container as root
                 }
             }
             steps {
                 sh '''
-                    npm install netlify-cli node-jq
-                    node_modules/.bin/netlify --version
+                    netlify --version
                     echo "Deploying to Production site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --json > deploy-stage-output.json
+                    netlify status
+                    netlify deploy --dir=build --json > deploy-stage-output.json
                     echo 'Stage URL : '
-                    node_modules/.bin/node-jq -r '.deploy_url' deploy-stage-output.json
+                    node-jq -r '.deploy_url' deploy-stage-output.json
                 '''
             }
         }
@@ -98,7 +107,7 @@ pipeline {
         stage('Deploy Prod') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'my-app-image'
                     reuseNode true
                     //args '-u root:root' to run container as root
                 }
@@ -106,13 +115,12 @@ pipeline {
             steps {
                 sh '''
                     echo 'Promoting to Prod..'
-                    npm install netlify-cli node-jq
-                    node_modules/.bin/netlify --version
+                    netlify --version
                     echo "Deploying to Production site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --prod --json > deploy-prod-output.json
+                    netlify status
+                    netlify deploy --dir=build --prod --json > deploy-prod-output.json
                     echo 'Prod URL: '
-                    node_modules/.bin/node-jq -r '.deploy_url' deploy-prod-output.json
+                    node-jq -r '.deploy_url' deploy-prod-output.json
                 '''
             }
         }
