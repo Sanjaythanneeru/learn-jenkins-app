@@ -8,7 +8,12 @@ pipeline {
 
     stages {
         stage('Docker Build') {
-            agent docker
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 sh '''
                     docker build -t my-app-image .
