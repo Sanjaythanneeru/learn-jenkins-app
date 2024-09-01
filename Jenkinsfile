@@ -8,11 +8,7 @@ pipeline {
 
     stages {
         stage('Docker Build') {
-            agent {
-                docker {
-                    reuseNode true
-                }
-            }
+            agent docker
             steps {
                 sh '''
                     docker build -t my-app-image .
